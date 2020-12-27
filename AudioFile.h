@@ -396,7 +396,7 @@ void AudioFile<T>::shouldLogErrorsToConsole (bool logErrors)
 template <class T>
 bool AudioFile<T>::load (std::string filePath)
 {
-    std::ifstream file (filePath, std::ios::binary);
+    std::ifstream file (filePath, std::ios::binary | std::ios::ate);
     
     // check the file exists
     if (! file.good())
@@ -405,9 +405,11 @@ bool AudioFile<T>::load (std::string filePath)
         return false;
     }
     
-    file.unsetf (std::ios::skipws);
-    std::istream_iterator<uint8_t> begin (file), end;
-    std::vector<uint8_t> fileData (begin, end);
+    size_t fileSize = file.tellg();
+    FILE* f = fopen(filePath.c_str(), "rb");
+    std::vector<uint8_t> fileData (fileSize);
+    fread(fileData.data(), 1, fileData.size(), f);
+    fclose(f);
     
     // get audio file format
     audioFileFormat = determineAudioFileFormat (fileData);
